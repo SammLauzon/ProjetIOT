@@ -1,0 +1,32 @@
+[
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/cores/arduino"
+  },
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "/Applications/Arduino.app/Contents/Java/hardware/arduino/avr/variants/standard"
+  },
+  {
+    "Sourcefile": "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/.\\build/sketch/test.ino.cpp",
+    "Include": "LiquidCrystal.h",
+    "Includepath": "/Applications/Arduino.app/Contents/Java/libraries/LiquidCrystal/src"
+  },
+  {
+    "Sourcefile": "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/.\\build/sketch/test.ino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/.\\build/sketch/dht.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "/Applications/Arduino.app/Contents/Java/libraries/LiquidCrystal/src/LiquidCrystal.cpp",
+    "Include": "",
+    "Includepath": null
+  }
+]

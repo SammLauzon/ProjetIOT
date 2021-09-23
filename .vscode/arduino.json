@@ -1,0 +1,6 @@
+{
+    "sketch": "test.ino",
+    "board": "arduino:avr:uno",
+    "output": ".\\build",
+    "port": "/dev/cu.usbmodem1101"
+}
