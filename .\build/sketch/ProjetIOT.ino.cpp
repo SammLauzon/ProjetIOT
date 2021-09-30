@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#line 1 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/test.ino"
+#line 1 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/ProjetIOT/ProjetIOT.ino"
 /*
  * test_lcd.ino
  * Utiliser la bibliothèque LiquidCrystal pour faire afficher
@@ -25,7 +25,7 @@
 // Classe pour afficher des caractères à l'aide du LCD
 #include <LiquidCrystal.h>
 // Classe pour mesurer la température interne de l'ATmega328P 
-#include "dht.h"
+#include "dhtlib_gpa788.h"
 
 
 /* ---------------------------------------------------------------
@@ -58,26 +58,24 @@ const float GAIN{1.22}; //1.06154;              // Choisir la bonne...
 /*---------------------------------------------*/
 /* Constantes et variables globales */
 /*---------------------------------------------*/
-// Relier le capteur à la broche #7
-const int DHT11_PIN{7};
 
 // Taux de transmission du port série
 const int BAUD_RATE{9600};
 
 // Créer un objet de type dht
-dht DHT;
+dhtlib_gpa788 DHT(7);
 
-#line 68 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/test.ino"
+#line 66 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/ProjetIOT/ProjetIOT.ino"
 void setup();
-#line 77 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/test.ino"
+#line 75 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/ProjetIOT/ProjetIOT.ino"
 void loop();
-#line 112 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/test.ino"
+#line 110 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/ProjetIOT/ProjetIOT.ino"
 void waitUntil(uint32_t w);
-#line 123 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/test.ino"
+#line 121 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/ProjetIOT/ProjetIOT.ino"
 void welcome(LiquidCrystal &l);
-#line 138 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/test.ino"
-void showTemp(dht &d, LiquidCrystal &l);
-#line 68 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/test/test.ino"
+#line 136 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/ProjetIOT/ProjetIOT.ino"
+void showTemp(dhtlib_gpa788 &d, LiquidCrystal &l);
+#line 66 "/Users/samuellauzon/Sam/Ecole/AUT2021/GPA788/LAB1/ProjetIOT/ProjetIOT.ino"
 void setup() {
 // Initialiser la vitesse du port série
   Serial.begin(BAUD_RATE);
@@ -148,25 +146,25 @@ void welcome(LiquidCrystal &l) {
    ---------------------------------------------------------------
    Note: On aurait pu utiliser l'objet global chipTemp directement.
    --------------------------------------------------------------- */
-void showTemp(dht &d, LiquidCrystal &l) {
+void showTemp(dhtlib_gpa788 &d, LiquidCrystal &l) {
   
-  int chk = DHT.read11(DHT11_PIN);
+  DHTLIB_ErrorCode chk = d.read11(d.getPin());
 
   // D'abord le terminal série
-  if (chk == DHTLIB_OK) {
+  if (chk == DHTLIB_ErrorCode::DHTLIB_OK) {
     Serial.print(F("Température = "));
-    Serial.println(DHT.temperature);
+    Serial.println(d.getTemperature());
     Serial.print(F("Humidité = "));
-    Serial.println(DHT.humidity);
+    Serial.println(d.getHumidity());
     // Ensuite l'afficheur LCD
-    l.setCursor(0,0); l.print("Temp: "); l.print(d.temperature); l.print((char)223); l.print("C");
-    l.setCursor(0,1); l.print("Humidity: "); l.print(d.humidity); l.print("%");
+    l.setCursor(0,0); l.print("Temp: "); l.print(d.getTemperature()); l.print((char)223); l.print("C");
+    l.setCursor(0,1); l.print("Humidity: "); l.print(d.getHumidity()); l.print("%");
   }
 
   else{
     l.setCursor(0,0); l.print("DHT11: Erreur");
     l.setCursor(0,1); l.print("DHT11: Code");
-    l.print(chk);
+    l.print((uint8_t)chk);
   }
   
 
