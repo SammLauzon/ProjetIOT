@@ -61,6 +61,8 @@ public:
   inline double GetVMax() const { return m_VMax; }
   inline int16_t GetAdcMax() const { return m_AdcMax; }
 
+  inline void SetAPin(uint8_t A_Pin){ m_APin = A_Pin; }
+
   /* -------------------------------------------------------------
      Services publics offerts
      -------------------------------------------------------------- */
