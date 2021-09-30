@@ -33,7 +33,12 @@ public:
   // Pour le microphone Electret une application de 94 dB SPL
   // produit -44 dBV/Pa à sa sortie. Le gain du MAX4466 est par
   // défaut réglé à 125 ou 42 dBV.
-  Calculateur_Leq();
+  Calculateur_Leq(double Ts, uint16_t VrmSamples, uint16_t LiSamples){
+    mTs = Ts;
+    mVrmSamples = VrmSamples;
+    mLiSamples = LiSamples;
+    compteur = 1;
+  }
     // Empêcher l'utilisation du constructeur de copie
   Calculateur_Leq(const Calculateur_Leq& other) = delete;
   // Empêcher l'utilisation de l'opérateur d'assignation
@@ -61,6 +66,11 @@ public:
   inline double GetP() const { return d.GetP(); }
   inline double GetM() const { return d.GetM(); }
   inline double GetG() const { return d.GetG(); }
+  inline uint32_t GetTs() const { return mTs; }
+  inline uint16_t GetVrmSamples() const { return mVrmSamples; }
+  inline uint16_t GetLiSamples() const { return mLiSamples; }
+
+  
 
 
   /* -------------------------------------------------------------
@@ -71,6 +81,8 @@ public:
   // Note: La temporisation est la responsabilité de l'utilisateur.
   void Accumulate() {
     d.Accumulate();
+    
+
   }
   // Utiliser Compute() de l'objet de classe Calculateur_VRMS
   // pour calculer la valeur rms du signal sonore et ensuite
@@ -78,8 +90,18 @@ public:
   // Note: La temporisation est la responsabilité de l'utilisateur.
   double Compute() {
     d.Compute();
-    m_Leq = 10*log10();
-    return m_Leq;
+    mSumLeq += mTs * mVrmSamples * pow(10, 0.1 * GetLi());
+
+    if(compteur/mLiSamples != 1){
+      m_Leq = 10*log10((1/(mTs * mVrmSamples * mLiSamples)*mSumLeq));
+    }
+
+    if(compteur == mLiSamples){
+      compteur = 1;
+    }
+    else{
+      compteur ++;
+    }
   }
   
 private:
@@ -89,8 +111,13 @@ private:
   // Calculateur_Li est une relation de "composition".
   Calculateur_Li d;
   // Pour le calcul de Li
-  double m_Leq;                         // Niveau d'énergie sonore au temps ti
+  double m_Leq;                     // Niveau d'énergie sonore au temps ti
+  double mSumLeq;                         
   double ti;
+  double mTs;
+  uint16_t compteur;
+  uint16_t mVrmSamples;
+  uint16_t mLiSamples;
 };
 
 #endif
