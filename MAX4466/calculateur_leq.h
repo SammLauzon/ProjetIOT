@@ -37,7 +37,6 @@ public:
     mTs = Ts;
     mVrmSamples = VrmSamples;
     mLiSamples = LiSamples;
-    compteur = 1;
   }
     // Empêcher l'utilisation du constructeur de copie
   Calculateur_Leq(const Calculateur_Leq& other) = delete;
@@ -80,6 +79,10 @@ public:
   // pour accumuler les valeurs du capteur sonore.
   // Note: La temporisation est la responsabilité de l'utilisateur.
   void Accumulate() {
+    
+    Serial.print(GetTotalSamples());
+    waitUntil(GetTs());
+    
     d.Accumulate();
     
 
@@ -89,20 +92,31 @@ public:
   // calculer Li du signal.
   // Note: La temporisation est la responsabilité de l'utilisateur.
   double Compute() {
-    d.Compute();
-    mSumLeq += mTs * mVrmSamples * pow(10, 0.1 * GetLi());
 
-    if(compteur/mLiSamples != 1){
-      m_Leq = 10*log10((1/(mTs * mVrmSamples * mLiSamples)*mSumLeq));
+    
+    if(GetTotalSamples() % mLiSamples == 0){
+
+      d.Compute();
+      mSumLeq += mTs * mVrmSamples * pow(10, 0.1 * GetLi());
     }
+    
 
-    if(compteur == mLiSamples){
-      compteur = 1;
+    if(GetTotalSamples() % mVrmSamples * mLiSamples == 0){
+      m_Leq = 10*log10((1/(mTs * mVrmSamples * mLiSamples)*mSumLeq));
+      return 1;
     }
     else{
-      compteur ++;
+
+      return 0;
     }
+
   }
+
+  void waitUntil(uint32_t w) {
+  uint32_t t{millis()};
+  // Attendre w millisecondes
+  while (millis() < t + w) {}
+}
   
 private:
   // Objet de classe Calculateur_VRMS pour réaliser les calculs

@@ -30,9 +30,9 @@
    -------------------------------------------------------------- */
 const uint32_t SERIAL_BAUD_RATE{115200};    // Terminal serie
 const uint8_t PIN{A0};                      // Broche du Capteur sonore
-const double TS = 62.5;                     // Péruide d'échantillionnage (ms)
+const uint32_t TS = 62;                     // Péruide d'échantillionnage (ms)
 const uint16_t NB_SAMPLE = 32;              // 32 x 62 ms ~ 2 secondes
-const uint16_t NB_LI = 150;                  // 150 x 2 secondes = 5 minutes (*)
+const uint16_t NB_LI = 10;                  // 150 x 2 secondes = 5 minutes (*)
 uint32_t countMillis;                       // Compter les minutes (pour debug seulement)
 // (*) Évidemment vous pouvez réduire la période d'échantillonnage durant la phase
 //     de déboggage (;-))

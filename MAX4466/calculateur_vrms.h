@@ -70,12 +70,15 @@ public:
   // calculer la valeur rms du signal sonore.
   // Note: La temporisation est la responsabilité de l'utilisateur.
   void Accumulate() {
-    m_Amplitude = analogRead(m_APin);
-    // Convertir en volts
-    double v = (m_Amplitude * m_C1) - m_VDC_OFFSET;
-    // Accumuler v^2
-    m_TmpVrms += (v * v);
-    ++m_NbSamples;   
+
+     //1 seconde pour accumulate
+      m_Amplitude = analogRead(m_APin);
+      // Convertir en volts
+      double v = (m_Amplitude * m_C1) - m_VDC_OFFSET;
+      // Accumuler v^2
+      m_TmpVrms += (v * v);
+      ++m_NbSamples;
+    
   }
 
   // Calculer la valeur rms du signal sonore.
