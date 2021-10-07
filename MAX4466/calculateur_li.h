@@ -36,6 +36,7 @@ public:
   Calculateur_Li(double P = 94.0, double M = -44, double G = 52.0)
     : m_P(P), m_M(M), m_G(G)
   {
+    mNb_li = 0;
   }
     // Empêcher l'utilisation du constructeur de copie
   Calculateur_Li(const Calculateur_Li& other) = delete;
@@ -55,6 +56,7 @@ public:
   inline double GetP() const { return m_P; }
   inline double GetM() const { return m_M; }
   inline double GetG() const { return m_G; }
+  inline uint32_t GetNbLi() const { return mNb_li;}
   
   inline uint16_t GetNbSamples() const { return c.GetnbSamples(); }
   inline uint16_t GetTotalSamples() const { return c.GetTotalSamples(); }
@@ -65,6 +67,7 @@ public:
   inline int16_t GetAdcMax() const { return c.GetAdcMax(); }
 
   inline void SetAPin(uint8_t A_Pin){ c.SetAPin(A_Pin); }
+  inline void ResetNbLi(){mNb_li = 0;}
   
   /* -------------------------------------------------------------
      Services publics offerts
@@ -82,6 +85,7 @@ public:
   double Compute() {
     c.Compute();
     m_Li = GetdBV() + m_P - m_M - m_G;
+    mNb_li++;
     return m_Li;
   }
   
@@ -96,6 +100,6 @@ private:
   double m_P;                          // Sensibilité Electret en dB SPL
   double m_M;                          // Sensibilité Electret en dBV/Pa
   double m_G;                          // Gain du MAX4466 en dBV
+  uint32_t mNb_li;                      // Nb d'échantillons
 };
-
 #endif

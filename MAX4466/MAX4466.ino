@@ -32,7 +32,7 @@ const uint32_t SERIAL_BAUD_RATE{115200};    // Terminal serie
 const uint8_t PIN{A0};                      // Broche du Capteur sonore
 const uint32_t TS = 62;                     // Péruide d'échantillionnage (ms)
 const uint16_t NB_SAMPLE = 32;              // 32 x 62 ms ~ 2 secondes
-const uint16_t NB_LI = 10;                  // 150 x 2 secondes = 5 minutes (*)
+const uint16_t NB_LI = 5;                  // 150 x 2 secondes = 5 minutes (*)
 uint32_t countMillis;                       // Compter les minutes (pour debug seulement)
 // (*) Évidemment vous pouvez réduire la période d'échantillonnage durant la phase
 //     de déboggage (;-))
@@ -89,6 +89,7 @@ void loop()
   // L'objet leq "sait" à quel moment il doit accumuler les valeurs
   // du signal sonore.
   leq.Accumulate();
+  //Serial.println(leq.GetTotalSamples());
   // L'objet leq sait à quels moments il faut calculer Vrms, Li et Leq
   if (leq.Compute() ) {
     Serial.print(leq.GetLeq(), 3); Serial.print(F("\t\t\t"));

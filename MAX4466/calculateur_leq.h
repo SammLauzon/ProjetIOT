@@ -68,6 +68,8 @@ public:
   inline uint32_t GetTs() const { return mTs; }
   inline uint16_t GetVrmSamples() const { return mVrmSamples; }
   inline uint16_t GetLiSamples() const { return mLiSamples; }
+  inline uint32_t GetNbLi() const { return d.GetNbLi();}
+  inline void ResetNbLi(){d.ResetNbLi();}
 
   
 
@@ -79,8 +81,7 @@ public:
   // pour accumuler les valeurs du capteur sonore.
   // Note: La temporisation est la responsabilité de l'utilisateur.
   void Accumulate() {
-    
-    Serial.print(GetTotalSamples());
+
     waitUntil(GetTs());
     
     d.Accumulate();
@@ -94,22 +95,25 @@ public:
   double Compute() {
 
     
-    if(GetTotalSamples() % mLiSamples == 0){
+    if(GetNbSamples() == mVrmSamples){
 
       d.Compute();
       mSumLeq += mTs * mVrmSamples * pow(10, 0.1 * GetLi());
     }
     
 
-    if(GetTotalSamples() % mVrmSamples * mLiSamples == 0){
+    if(GetNbLi() == mLiSamples && GetTotalSamples() != 0){
       m_Leq = 10*log10((1/(mTs * mVrmSamples * mLiSamples)*mSumLeq));
+      mSumLeq = 0;
+      ResetNbLi();
+
       return 1;
     }
     else{
 
       return 0;
     }
-
+    return 0;
   }
 
   void waitUntil(uint32_t w) {
