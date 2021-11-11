@@ -58,7 +58,7 @@ union CarteRegistres cr;       // Une carte des registres
 float temperature;                     // Variable intermédiaire pour mémoriser la température
 float humidity;
 uint8_t adrReg;                        // Adresse du registre reçue du coordonnateur
-enum class CMD { Stop = 0, Go};        // Commandes venant du coordonnateur
+enum class CMD { Stop = 0, Go, Pause};        // Commandes venant du coordonnateur
 volatile CMD cmd;                      // Go -> échantilloner, Stop -> arrêter
 const uint8_t MIN_Ts = 5;              // Période d'échantillonnage min (sec)
 const uint8_t MAX_Ts = 200;            // Période d'échantillonnage max (sec)
@@ -156,16 +156,12 @@ void i2c_receiveEvent(int n) {
         Serial.println(F("Commande 'Démarrer' reçue"));
         break;
     case 0xA5:
-        Serial.println(F("Communication en 'Pause'")); 
-        while(1){
-          if(Wire.read()==0xA6){
-            Serial.println(F("Communication 'Redémarré'"));
-            break;
-          }
-        }
+        cmd = CMD::Pause;
+        Serial.println(F("Communication en Pause")); 
         break;
-    case 0xA7:
-        Serial.println(F("Un courriel a été envoyé"));
+    case 0xA6:
+        cmd = CMD::Go;
+        Serial.println(F("Communication en Redémarré")); 
         break;
     
     default:
