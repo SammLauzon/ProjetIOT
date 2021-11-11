@@ -69,6 +69,8 @@ public:
   inline uint16_t GetVrmSamples() const { return mVrmSamples; }
   inline uint16_t GetLiSamples() const { return mLiSamples; }
   inline uint32_t GetNbLi() const { return d.GetNbLi();}
+  inline void SetNbLiSamples(uint32_t nbLiSamples) {mLiSamples = nbLiSamples; }
+  inline void SetNbVrmsSamples(uint32_t nbVrmSample) {mVrmSamples = nbVrmSample; }
   inline void ResetNbLi(){d.ResetNbLi();}
 
   
