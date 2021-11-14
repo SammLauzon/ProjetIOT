@@ -11,12 +11,12 @@ Juillet 2020
 
 # Temps d'échantillonnage du coordonnateur. Il doit être
 # supérieur au temps d'échantillonage du noeud.
-SAMPLING_TIME = 15      # Ts du coordonnateur
+SAMPLING_TIME = 1      # Ts du coordonnateur
 NEW_TS = 6              # nouvelle Ts pour le noeud
 NEW_Vrms = 32           # nouvelle valeur Vrms pour le MAX4466
 New_Li = 10             # nouvelle valeur Li pour le MAX4466
-THINGSPK_URL = 'https://api.thingspeak.com/update'
-THINGSPK_API_KEY = '4EBV7MMU8VB0GNQW'
+THINGSPK_URL = 'https://api.thingspeak.com/update' #URL pour la platforme thingspeak
+THINGSPK_API_KEY = 'FKFMV3PVL12YV209' #API_KEY d'écriture pour le serveur infonuagique
 DELAY = 20              # interval de transmission
 
 # Adresses IC2 du noeud - tuple
@@ -40,12 +40,12 @@ I2C_CMD_SET_RESTART = 0xA6 # Redémarrage de l'envoie des données des noeuds
 I2C_NODE_TS = 0         # Temps d'échantillonnage (1 octet)
 I2C_NODE_NS_LSB = 1     # Nombre d'échantillons depuis la mise en
 I2C_NODE_NS_MSB = 2     # marche du noeud (int sur 2 octets)
-I2C_NODE_TEMP_LSB0 = 3  # Temperature interne du processeur
+I2C_NODE_TEMP_LSB0 = 3  # Temperature DHT11 et intensité MAX4466
 I2C_NODE_TEMP_LSB1 = 4  # (float sur 4 octets)
-I2C_NODE_TEMP_MSB0 = 5
+I2C_NODE_TEMP_MSB0 = 5  
 I2C_NODE_TEMP_MSB1 = 6
-I2C_NODE_HUM_LSB0 = 7  
-I2C_NODE_HUM_LSB1 = 8  
+I2C_NODE_HUM_LSB0 = 7   # Humidité DHT11
+I2C_NODE_HUM_LSB1 = 8   # (float sur 4 octets)
 I2C_NODE_HUM_MSB0 = 9
 I2C_NODE_HUM_MSB1 = 10
 
