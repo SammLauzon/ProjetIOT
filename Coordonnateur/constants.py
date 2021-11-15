@@ -11,7 +11,7 @@ Juillet 2020
 
 # Temps d'échantillonnage du coordonnateur. Il doit être
 # supérieur au temps d'échantillonage du noeud.
-SAMPLING_TIME = 1      # Ts du coordonnateur
+SAMPLING_TIME = 3      # Ts du coordonnateur
 NEW_TS = 6              # nouvelle Ts pour le noeud
 NEW_Vrms = 32           # nouvelle valeur Vrms pour le MAX4466
 New_Li = 10             # nouvelle valeur Li pour le MAX4466

@@ -249,7 +249,7 @@ class CoordCommunication():
       # Note: la conversion par struct produit des listes d'objets dans nb_echan 
       #       et temperature. C'est pourquoi on prend uniquement le premier élément
       #       avec la syntaxe [0].
-      return value[0]
+      return round(value[0],2)
     else:
       raise CoordException(F"<read_Temp> Bus non initié ou adresse I2C invalide.")
 
