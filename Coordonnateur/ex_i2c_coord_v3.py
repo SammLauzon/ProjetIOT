@@ -32,7 +32,7 @@ import struct           # pour la conversion octet -> float
 from datetime import datetime # pour l'horodatage des échantillons
 from CoordI2C import CoordCommunication, CoordException  
 import constants as cst # constants du programme
-import requests
+import requests  #pour l'envoie des données avec thinkspeak
 
 # -------------------------------------------------------------------
 # Structures pour la conversion des données reçues
@@ -47,7 +47,7 @@ import requests
     alphanumérique des champs. Ainsi, on utilisera l'adresse I2C des noeuds
     comme l'index principal. Cela facilitera la programmation des accès aux données.
 '''
-
+#Décalaration des noeuds
 NoeudTemp = CoordCommunication(cst.I2C_ADDRESS[0], smbus.SMBus(1))
 NoeudSon = CoordCommunication(cst.I2C_ADDRESS[1], smbus.SMBus(1))
 
@@ -102,19 +102,24 @@ def main():
       #      du coordonateur
       time.sleep(cst.SAMPLING_TIME)
 
-      if (datetime.now().minute == None) & (datetime.now().hour == None):
+      #------------------------------------------------------------------------
+      # Gestion de nos fonctions utilitaire:
+      #       - Permet de définir une heure pour mettre le système en pause 
+      #          et le redémarre automatiquement lorsque la pause est terminé.
+      #------------------------------------------------------------------------
+      if (datetime.now().minute == None) & (datetime.now().hour == None): # Veuiller changer les valeurs 'None' pour l'heure et la minute que vous désirez faire une pause 
         print('PAUSE DEMANDÉ')
         for noeud in ListNoeud:
           noeud.send_Pause()
 
         while True:
-          if (datetime.now().minute == None) & (datetime.now().hour == None):
+          if (datetime.now().minute == None) & (datetime.now().hour == None): # Veuiller changer les valeurs 'None' pour l'heure et la minute que vous désirez redémarrer le système
             for noeud in ListNoeud:
               noeud.send_Restart() 
             break
 
 
-      # 4.2) Lire la température interne du noeud.
+      # 4.2) Lire la température, humidité et l'intensité des noeuds.
       for adr in cst.I2C_ADDRESS:
           if adr == cst.I2C_ADDRESS[0]:
             Sensor_Data[adr]['Temperature'] = ListNoeud[0].read_Value(cst.I2C_NODE_TEMP_LSB0)

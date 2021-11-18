@@ -31,7 +31,6 @@ import time             # pour sleep()
 import struct           # pour la conversion octet -> float
 from datetime import datetime    # pour l'horodatage des échantillons
 import constants as cst # constants du programme
-import datetime
 
 # -------------------------------------------------------------------
 # Structures pour la conversion des données reçues
@@ -137,7 +136,16 @@ class CoordCommunication():
       raise CoordException(F"<send_Ts> Bus non initié ou adresse I2C invalide.")
   
   def send_Nb_Vrms(self, nb_Vrms =-1):
+    '''Envoyer le nombre de Vrms au noeud controlant le MAX4466.
 
+    Paramètres:
+    bus -- objet SMBUS déjà initialisé
+    adr (int) -- adresse du noeud destinataire
+    nb_Vrms -- nombre de Vrms pour configurer le noeud du MAX4466
+
+    Retour: n/a
+    Exceptions possibles: CoordException, IOError
+    '''
     if self.bus != None and (self.address >= cst.I2C_MIN_ADR and self.address <= cst.I2C_MAX_ADR):
       # Note: la fonction write_i2c_block_data transmet une commande
       #       et des données en bloc. Les données doivent être dans
@@ -148,6 +156,16 @@ class CoordCommunication():
       raise CoordException(F"<send_Nb_Vrms> Bus non initié ou adresse I2C invalide.")
   
   def send_Nb_Li(self, nb_Li =-1):
+    '''Envoyer le nombre de Li au noeud controlant le MAX4466.
+
+    Paramètres:
+    bus -- objet SMBUS déjà initialisé
+    adr (int) -- adresse du noeud destinataire
+    nb_Li -- nombre de Li pour configurer le noeud du MAX4466
+
+    Retour: n/a
+    Exceptions possibles: CoordException, IOError
+    '''
 
     if self.bus != None and (self.address >= cst.I2C_MIN_ADR and self.address <= cst.I2C_MAX_ADR):
       # Note: la fonction write_i2c_block_data transmet une commande
@@ -159,6 +177,15 @@ class CoordCommunication():
       raise CoordException(F"<send_Nb_Li> Bus non initié ou adresse I2C invalide.")
 
   def send_Restart(self):
+    '''Envoyer une commande de redémarrage aux noeuds après une pause.
+
+    Paramètres:
+    bus -- objet SMBUS déjà initialisé
+    adr (int) -- adresse du noeud destinataire
+
+    Retour: n/a
+    Exceptions possibles: CoordException, IOError
+    '''
 
     if self.bus != None and (self.address >= cst.I2C_MIN_ADR and self.address <= cst.I2C_MAX_ADR):
       # Note: la fonction write_i2c_block_data transmet une commande
@@ -170,6 +197,15 @@ class CoordCommunication():
       raise CoordException(F"<send_Restart> Bus non initié ou adresse I2C invalide.")
 
   def send_Pause(self):
+    '''Envoyer une pause aux noeuds pour arrêter l'accumulation des données.
+
+    Paramètres:
+    bus -- objet SMBUS déjà initialisé
+    adr (int) -- adresse du noeud destinataire
+
+    Retour: n/a
+    Exceptions possibles: CoordException, IOError
+    '''
     if self.bus != None and (self.address >= cst.I2C_MIN_ADR and self.address <= cst.I2C_MAX_ADR):
       # Note: la fonction write_i2c_block_data transmet une commande
       #       et des données en bloc. Les données doivent être dans
@@ -183,13 +219,13 @@ class CoordCommunication():
 
 
   def read_Value(self, startByte = 0):
-    '''Lire la température du noeud à l'adresse adr.
+    '''Lire les valeurs des noeuds à l'adresse adr.
 
     Arguments:
     bus -- objet SMBUS déjà initialisé
     adr (int) -- adresse du noeud destinataire
 
-    Retour (float): Valeur de la température
+    Retour (float): Valeur de températeur, humidité ou intensité
     Exceptions possibles: CoordException, IOError, struct.error
     '''
     if self.bus != None and (self.address >= cst.I2C_MIN_ADR and self.address <= cst.I2C_MAX_ADR):
@@ -213,7 +249,7 @@ class CoordCommunication():
       # Note: la conversion par struct produit des listes d'objets dans nb_echan 
       #       et temperature. C'est pourquoi on prend uniquement le premier élément
       #       avec la syntaxe [0].
-      return value[0]
+      return round(value[0],2)
     else:
       raise CoordException(F"<read_Temp> Bus non initié ou adresse I2C invalide.")
 
