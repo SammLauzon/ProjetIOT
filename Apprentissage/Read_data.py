@@ -33,7 +33,14 @@ import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
 from math import sin, pi, exp
+
+from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint
 from conversion_signaux import signaux_apprentissage_supervise as ss
+from tensorflow.python.keras.models import Model, Sequential
+from tensorflow.python.keras.layers import LSTM
+from tensorflow.python.keras.layers import Dense
+
+
 
 # -------------------------------------------------------------------
 # ThingSpeak
@@ -109,7 +116,7 @@ def read_data():
   matrice_bool = (df > 0).all(1)
   df = df[matrice_bool==True]
   # df.to_excel('test.xlsx')
-  return df
+  return df[:800]
 
 def learn(df):
   vals = df.values
@@ -118,36 +125,75 @@ def learn(df):
 
   distance_from_mean = np.abs(vals - mean)
   max_deviation = 2
+  ep = 200
 
   not_outlier = distance_from_mean < max_deviation * std
   vals = vals[np.where(not_outlier.all(1) == True)]
   vals = vals.astype('float32')
 
   longueur = len(vals)
-  periode = [400, 450, 500]
+  periode = [450, 500, 550]
   amplitude = 0.5
   noise_factor = 0.1
-
-  for i in range (len(vals[0])):
-    rand = np.random.uniform(low = -noise_factor * np.max(vals[:,i]), high = noise_factor * np.max(vals[:,i]), size = len(vals))
-    vals[:,i] += rand
+  amortissement = 0
   
   signal = np.zeros((len(vals),len(periode)))
 
   for j in range (len(periode)):
-    signal[:,j] = [amplitude - amplitude*sin(2*pi*i/periode[j]) for i in range(longueur)]
+    signal[:,j] = [amplitude - amplitude*sin(2*pi*i/periode[j])*exp(-amortissement*i) for i in range(longueur)]
   
   #signal = np.array(signal)
   sin_vals = signal*vals
 
-  print(sin_vals)
-
+  for i in range (len(vals[0])):
+    rand = np.random.uniform(low = -noise_factor * np.max(sin_vals[:,i]), high = noise_factor * np.max(sin_vals[:,i]), size = len(sin_vals))
+    sin_vals[:,i] += rand
+  
   Scaler = MinMaxScaler(feature_range=(0,1))
   vals_normalisees = Scaler.fit_transform(sin_vals)
-  
-  plt.plot(vals_normalisees)
-  plt.show()
 
+  # plt.plot(vals_normalisees)
+  # plt.show()
+
+  vals_convertis = ss(vals_normalisees,3,2)
+  vals_convertis.drop(vals_convertis.columns[[9,10,12,13]], axis=1, inplace=True)
+  nb_lignes, nb_cols = vals_convertis.shape
+
+  train_val_split = 0.7
+
+  apprentissage = vals_convertis.values[:int(round(nb_lignes)*train_val_split),:]
+  validation = vals_convertis.values[int(round(nb_lignes)*train_val_split):,:]
+
+  apprentissage_X, apprentissage_Y = apprentissage[:,:-2], apprentissage[:,-2:]
+  validation_X, validation_Y = validation[:,:-2], validation[:,-2:]
+
+  apprentissage_X = apprentissage_X.reshape((apprentissage_X.shape[0], 1, apprentissage_X.shape[1]))
+  validation_X = validation_X.reshape((validation_X.shape[0], 1, validation_X.shape[1]))
+
+  # print(apprentissage_X.shape, apprentissage_Y.shape)
+  # print(validation_X.shape, validation_Y.shape)
+
+  reseau = Sequential()
+  reseau.add(LSTM(20, input_shape=(apprentissage_X.shape[1], apprentissage_X.shape[2]),return_sequences=True))
+  # reseau.add(LSTM(20, return_sequences=True))
+  reseau.add(LSTM(20))
+  reseau.add(Dense(2))
+  reseau.compile(loss='mae', optimizer='adam')
+  # mae = reseau.evaluate()
+
+  fonction_es = EarlyStopping(monitor='val_loss', min_delta = 0.001, mode = 'min', verbose = 1, patience = 50) 
+  fonction_mc = ModelCheckpoint('reseau_lot200_2LSTM25.hdf5', monitor = 'val_loss', mode = 'min', 
+                                verbose = 1, save_best_only = True) 
+  history = reseau.fit(apprentissage_X, apprentissage_Y, epochs = ep, 
+                       batch_size=32, validation_data=(validation_X,validation_Y), verbose = True, shuffle = True,
+                       callbacks = [fonction_es, fonction_mc])
+
+  plt.plot(history.history['loss'])
+  plt.plot(history.history['val_loss'])
+  plt.xlabel('Epoch')
+  plt.ylabel('loss')
+  plt.legend(['train','validation'])
+  plt.show()
 
 def main():
   learn(read_data())
