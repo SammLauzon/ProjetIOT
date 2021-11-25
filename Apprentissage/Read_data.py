@@ -30,6 +30,10 @@ Novembre 2021
 import requests, sys
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+from math import sin, pi, exp
+from conversion_signaux import signaux_apprentissage_supervise as ss
 
 # -------------------------------------------------------------------
 # ThingSpeak
@@ -53,7 +57,7 @@ data = np.empty((NB_POINTS,NB_CHANNELS))
 # -------------------------------------------------------------------
 # Fonction principale
 # -------------------------------------------------------------------
-def main():
+def read_data():
   # Note: f-string disponible depuis Python 3.6
   for c in range(1,NB_CHANNELS+1):
     THINGSPK_FIELD_NO = str(c)
@@ -81,8 +85,8 @@ def main():
           r = resp.json()
           idx = 0
           for d in r['feeds']:
-              print(f"Point # {d['entry_id']},", end = ' ')
-              print(f"valeur du champ {str(c)}: {d['field' + str(c)]}")
+              # print(f"Point # {d['entry_id']},", end = ' ')
+              # print(f"valeur du champ {str(c)}: {d['field' + str(c)]}")
               data[idx, c-1] = d['field' + str(c)]
               idx += 1
 
@@ -104,7 +108,50 @@ def main():
   df = pd.DataFrame(data=data, columns=["Température(°C)","Humidité relative (%)","Leq (dB)"])
   matrice_bool = (df > 0).all(1)
   df = df[matrice_bool==True]
-  df.to_excel('test.xlsx')
+  # df.to_excel('test.xlsx')
+  return df
+
+def learn(df):
+  vals = df.values
+  std = np.std(vals, axis = 0)
+  mean = np.mean(vals, axis = 0)
+
+  distance_from_mean = np.abs(vals - mean)
+  max_deviation = 2
+
+  not_outlier = distance_from_mean < max_deviation * std
+  vals = vals[np.where(not_outlier.all(1) == True)]
+  vals = vals.astype('float32')
+
+  longueur = len(vals)
+  periode = [400, 450, 500]
+  amplitude = 0.5
+  noise_factor = 0.1
+
+  for i in range (len(vals[0])):
+    rand = np.random.uniform(low = -noise_factor * np.max(vals[:,i]), high = noise_factor * np.max(vals[:,i]), size = len(vals))
+    vals[:,i] += rand
+  
+  signal = np.zeros((len(vals),len(periode)))
+
+  for j in range (len(periode)):
+    signal[:,j] = [amplitude - amplitude*sin(2*pi*i/periode[j]) for i in range(longueur)]
+  
+  #signal = np.array(signal)
+  sin_vals = signal*vals
+
+  print(sin_vals)
+
+  Scaler = MinMaxScaler(feature_range=(0,1))
+  vals_normalisees = Scaler.fit_transform(sin_vals)
+  
+  plt.plot(vals_normalisees)
+  plt.show()
+
+
+def main():
+  learn(read_data())
+  
 
 # ------------------------------------------------------
 # Programme principal
