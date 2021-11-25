@@ -77,7 +77,7 @@ const uint8_t MIN_Ts = 5;              // Période d'échantillonnage min (sec)
 const uint8_t MAX_Ts = 200;            // Période d'échantillonnage max (sec)
 
 //Création de l'objet
-Calculateur_Leq leq(TS, NB_SAMPLE, NB_LI);
+Calculateur_Leq leq(TS, NB_SAMPLE, NB_LI); // Creation d'un objet de type leq
 
 /* ------------------------------------------------------------------
    Initialisation
@@ -122,12 +122,11 @@ void setup()
    ------------------------------------------------------------------ */
 void loop()
 {
-  // Échantillonner la température interne si la commande est Go
+  // Échantillonner pour calculer un leq si la commande est Go
   if (cmd == CMD::Go) {
     // L'objet leq "sait" à quel moment il doit accumuler les valeurs
   // du signal sonore.
   leq.Accumulate();
-  //Serial.println(leq.GetTotalSamples());
   // L'objet leq sait à quels moments il faut calculer Vrms, Li et Leq
   if (leq.Compute() ) {
     intensiteSon = leq.GetLeq();
@@ -137,7 +136,7 @@ void loop()
     // Recommandation: réaliser la tâche la plus rapidement que possible dans
     //                 la section critique.
       ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      // Assigner la température lue dans cr.champs.temperature
+      // Assigner l'intensite dans cr.champs.son
         cr.champs.son = intensiteSon;
       // Augmenter le compte du nombre d'échantillons
         cr.champs.nb_echantillons++;
@@ -148,7 +147,6 @@ void loop()
       Serial.print(" Li: "); Serial.print((((float)TS)/1000) * leq.GetVrmSamples() * leq.GetLiSamples()); Serial.println(F(" secondes"));
 
       // Attendre la prochaine période d'échantillonnage
-      //waitUntil(cr.champs.Ts * 1000);
     }
   }
 }
