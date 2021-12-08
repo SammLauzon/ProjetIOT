@@ -1,15 +1,19 @@
-/*  ex_i2cA - Noeud A
+/*  i2c_DHT11 - Noeud DHT11
  *  Ce programme est un exemple de communication I2C
  *  entre un coordonnateur (Pi) et un neoud (Arduino).
  *  Ce noeud est capable de transférer vers le coordonnateur:
  * 
- *    - la valeur de la température interne;
+ *    - la valeur de la température et d'humidité du DHT11;
  *    - le numéro de l'échantillon.
  *  
  *  De plus, le noeud est capable de recevoir les commandes suivantes
  *  du coordonnateur:
  *    - STOP: arrêter l'échantillonnage;
  *    - GO:   démarrer l'échantillonnage.
+ *    - PAUSE: met en pause l'échantillonnage.
+ *    - REDMARRER: redémarre l'échantillonnage.
+ *    - CHANGE TS : Change la période d'échantillonnage.
+ * 
  * 
  *  Dans cet exemple, l'arrêt de l'échantillonnage remet à zéro le numéro
  *  de l'échantillon.
@@ -44,9 +48,11 @@ union CarteRegistres {
     volatile uint8_t Ts;
     // Nombre d'échantillons (2 octets)
     volatile int16_t nb_echantillons;
-    // Température interne du processeur ATMEGA en celsius
+    // Température lu par le DHT11 en celsius
     // (4 octets)
     volatile float temperature;
+    // Humidité lu par le DHT11
+    // (4 octets)
     volatile float humidity;
   } champs;
   // Ce tableau: Utilisé par le coordonnateur pour lire et écrire
@@ -56,7 +62,7 @@ union CarteRegistres {
 
 union CarteRegistres cr;       // Une carte des registres
 float temperature;                     // Variable intermédiaire pour mémoriser la température
-float humidity;
+float humidity;                         // Variable intermédiaire pour mémoriser l'humidité
 uint8_t adrReg;                        // Adresse du registre reçue du coordonnateur
 enum class CMD { Stop = 0, Go, Pause};        // Commandes venant du coordonnateur
 volatile CMD cmd;                      // Go -> échantilloner, Stop -> arrêter
@@ -110,12 +116,13 @@ void loop()
     temperature = DHT.getTemperature();
     humidity = DHT.getHumidity();
     // Section critique: empêcher les interruptions lors de l'assignation
-    // de la valeur de la température à la variable dans la carte des registres.
+    // de la valeur de la température et de l'humidité à la variable dans la carte des registres.
     // Recommandation: réaliser la tâche la plus rapidement que possible dans
     //                 la section critique.
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
       // Assigner la température lue dans cr.champs.temperature
       cr.champs.temperature = temperature;
+      // Assigner l'humidité lue dans cr.champs.humidity
       cr.champs.humidity = humidity;
       // Augmenter le compte du nombre d'échantillons
       cr.champs.nb_echantillons++;
