@@ -92,8 +92,7 @@ def read_data():
           r = resp.json()
           idx = 0
           for d in r['feeds']:
-              # print(f"Point # {d['entry_id']},", end = ' ')
-              # print(f"valeur du champ {str(c)}: {d['field' + str(c)]}")
+              
               data[idx, c-1] = d['field' + str(c)]
               idx += 1
 
@@ -110,15 +109,16 @@ def read_data():
     except requests.HTTPError:
       print('Erreur au niveau du protocole HTTP')
       sys.exit(5)         # 5 = Erreur HTTP
-  # print(data)
-  # index = np.where(data[:,0])
+  
   df = pd.DataFrame(data=data, columns=["Température(°C)","Humidité relative (%)","Leq (dB)"])
   matrice_bool = (df > 0).all(1)
   df = df[matrice_bool==True]
-  # df.to_excel('test.xlsx')
+
   return df[:800]
 
 def learn(df):
+
+  #Calcul statistique sur les valeurs
   vals = df.values
   std = np.std(vals, axis = 0)
   mean = np.mean(vals, axis = 0)
@@ -127,10 +127,12 @@ def learn(df):
   max_deviation = 2
   ep = 200
 
+#Elimination des données abberantes
   not_outlier = distance_from_mean < max_deviation * std
   vals = vals[np.where(not_outlier.all(1) == True)]
   vals = vals.astype('float32')
 
+#Parametre pour appliquer une fonction sin pour briser la corrélation des données.
   longueur = len(vals)
   periode = [450, 500, 550]
   amplitude = 0.5
@@ -139,48 +141,48 @@ def learn(df):
   
   signal = np.zeros((len(vals),len(periode)))
 
+#Application du sinus sur les données
   for j in range (len(periode)):
     signal[:,j] = [amplitude - amplitude*sin(2*pi*i/periode[j])*exp(-amortissement*i) for i in range(longueur)]
   
-  #signal = np.array(signal)
   sin_vals = signal*vals
 
+# Ajout de bruit pour enlever la corrélation restantes
   for i in range (len(vals[0])):
     rand = np.random.uniform(low = -noise_factor * np.max(sin_vals[:,i]), high = noise_factor * np.max(sin_vals[:,i]), size = len(sin_vals))
     sin_vals[:,i] += rand
   
+  #Normalisation des données
   Scaler = MinMaxScaler(feature_range=(0,1))
   vals_normalisees = Scaler.fit_transform(sin_vals)
 
-  # plt.plot(vals_normalisees)
-  # plt.show()
-
+# Valeurs convertis sous forme décalée
   vals_convertis = ss(vals_normalisees,3,2)
   vals_convertis.drop(vals_convertis.columns[[9,10,12,13]], axis=1, inplace=True)
   nb_lignes, nb_cols = vals_convertis.shape
 
   train_val_split = 0.7
 
+#Séparation des données en set d'apprentissage et de validation
   apprentissage = vals_convertis.values[:int(round(nb_lignes)*train_val_split),:]
   validation = vals_convertis.values[int(round(nb_lignes)*train_val_split):,:]
-
   apprentissage_X, apprentissage_Y = apprentissage[:,:-2], apprentissage[:,-2:]
   validation_X, validation_Y = validation[:,:-2], validation[:,-2:]
 
+# Reshape les tenseurs de données pour avoir le format que Keras désire
   apprentissage_X = apprentissage_X.reshape((apprentissage_X.shape[0], 1, apprentissage_X.shape[1]))
   validation_X = validation_X.reshape((validation_X.shape[0], 1, validation_X.shape[1]))
 
-  # print(apprentissage_X.shape, apprentissage_Y.shape)
-  # print(validation_X.shape, validation_Y.shape)
-
+  
+#Construction du réseau
   reseau = Sequential()
-  reseau.add(LSTM(20, input_shape=(apprentissage_X.shape[1], apprentissage_X.shape[2]),return_sequences=True))
-  # reseau.add(LSTM(20, return_sequences=True))
-  reseau.add(LSTM(20))
+  reseau.add(LSTM(20, input_shape=(apprentissage_X.shape[1], apprentissage_X.shape[2]),return_sequences=True)) # Première couche
+  
+  reseau.add(LSTM(20)) # deuxieme couche
   reseau.add(Dense(2))
   reseau.compile(loss='mae', optimizer='adam')
-  # mae = reseau.evaluate()
-
+  
+#Entrainement du réseau avec la fonction fit, earlyStopping et ModelCHeckpoint sont des fonctions pour optimiser le temps d'apprentissage.
   fonction_es = EarlyStopping(monitor='val_loss', min_delta = 0.001, mode = 'min', verbose = 1, patience = 50) 
   fonction_mc = ModelCheckpoint('reseau_lot200_2LSTM25.hdf5', monitor = 'val_loss', mode = 'min', 
                                 verbose = 1, save_best_only = True) 
@@ -188,6 +190,7 @@ def learn(df):
                        batch_size=32, validation_data=(validation_X,validation_Y), verbose = True, shuffle = True,
                        callbacks = [fonction_es, fonction_mc])
 
+# Affichage graphique des courbes d'erreurs moyennes
   plt.plot(history.history['loss'])
   plt.plot(history.history['val_loss'])
   plt.xlabel('Epoch')
